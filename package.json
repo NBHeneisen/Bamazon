@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/NBHeneisen/Bamazon#readme",
   "dependencies": {
-    "mysql": "^2.13.0"
+    "mysql": "^2.13.0",
+    "promptly": "^2.2.0"
   }
 }
