@@ -28,24 +28,38 @@ function sale() {
                 console.log("ID: " + rows[row].item_id + "  ||  Product name: " + rows[row].product_name + "  ||  Department: " + rows[row].dept_name + "  ||  Price: " + rows[row].price + "  ||  Stock Quantity: " + rows[row].stock_quantity);
                 console.log("");
             };
-        salesPrompt();
+            console.log("---------------------------")
+            promptly.prompt("Please choose the ID of the product you're interested in: ")
+            .then(function (value) {
+                connection.query('SELECT item_id, product_name, dept_name, price, stock_quantity FROM products WHERE item_id = ?',[value], function(err, option){
+                    if(err) throw err;
+                    console.log("You chose:");
+                    console.log("ID: " + option[0].item_id + "  ||  Product name: " + option[0].product_name + "  ||  Department: " + option[0].dept_name + "  ||  Price: " + option[0].price + "  ||  Stock Quantity: " + option[0].stock_quantity);
+                    promptly.prompt("How many would you like to purchase?")
+                    .then(function(quantity) {
+                        //if not enough in stock, show amount left in stock and let user retry, else confirm and subtract quantity from stock
+                        if (quantity > option[0].stock_quantity) {
+                            console.log("Not enough in stock");
+                        } else {
+                            promptly.confirm("Please confirm your purchase: You are buying " + quantity + " of the " + option[0].product_name + ".")
+                            .then(function(confirmation) {
+                                if(confirmation = true) {
+                                    connection.query('UPDATE products SET stock_quantity = ?' [option[0].stock_quantity - quantity], function(err, results, fields){
+                                        console.log(option[0].stock_quantity)
+                                        console.log(fields);
+                                        console.log("I'm getting here");
+                                    });
+                                }
+                            });
+                        };
+                    });
+
+                });
+                connection.end();
+            });
         });
-        connection.end();
     });
 };
 
-
-function salesPrompt() {
-    console.log("---------------------------")
-    promptly.prompt("Please choose the ID of the product you're interested in: ")
-    .then(function (value) {
-        console.log(value);
-        connection.query('SELECT item_id, product_name, dept_name, price, stock_quantity FROM products WHERE item_id = ?',[rows[row].item_id], function(err, rows){
-            if(err) throw err;
-            console.log(" You chose:")
-            console.log("ID: " + rows[value].item_id + "  ||  Product name: " + rows[value].product_name + "  ||  Department: " + rows[value].dept_name + "  ||  Price: " + rows[value].price + "  ||  Stock Quantity: " + rows[value].stock_quantity);
-            });
-    });
-}
 
 sale();
