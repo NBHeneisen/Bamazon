@@ -29,33 +29,41 @@ function sale() {
                 console.log("");
             };
             console.log("---------------------------")
+            
+            //user chooses product and product choice is listed
             promptly.prompt("Please choose the ID of the product you're interested in: ")
             .then(function (value) {
                 connection.query('SELECT item_id, product_name, dept_name, price, stock_quantity FROM products WHERE item_id = ?',[value], function(err, option){
                     if(err) throw err;
                     console.log("You chose:");
                     console.log("ID: " + option[0].item_id + "  ||  Product name: " + option[0].product_name + "  ||  Department: " + option[0].dept_name + "  ||  Price: " + option[0].price + "  ||  Stock Quantity: " + option[0].stock_quantity);
+                    //user chooses quantity they would like to purchase
                     promptly.prompt("How many would you like to purchase?")
                     .then(function(quantity) {
-                        //if not enough in stock, show amount left in stock and let user retry, else confirm and subtract quantity from stock
+                        //if not enough in stock alert user, else confirm and subtract quantity from stock
                         if (quantity > option[0].stock_quantity) {
                             console.log("Not enough in stock");
                         } else {
                             promptly.confirm("Please confirm your purchase: You are buying " + quantity + " of the " + option[0].product_name + ".")
                             .then(function(confirmation) {
-                                if(confirmation = true) {
-                                    connection.query('UPDATE products SET stock_quantity = ?' [option[0].stock_quantity - quantity], function(err, results, fields){
-                                        console.log(option[0].stock_quantity)
-                                        console.log(fields);
-                                        console.log("I'm getting here");
+                                if(confirmation === true) {
+                                    connection.query('UPDATE products SET stock_quantity = ? WHERE item_id = ?', [option[0].stock_quantity - quantity, option[0].item_id], function(err, results){
+                                        if(err) throw err;
+                                        connection.query('SELECT item_id, product_name, dept_name, price, stock_quantity FROM products WHERE item_id = ?',[value], function(err, confirmedOption){
+                                            if(err) throw err;
+                                            console.log("(Quantity reduced to " + confirmedOption[0].stock_quantity + ")");
+                                            console.log("Purchase confirmed! Your total comes to " + confirmedOption[0].price * quantity + " for the " + quantity + " " + confirmedOption[0].product_name + "(s)!");
+                                            connection.end();
+                                        });
                                     });
-                                }
+                                } else {
+                                    console.log("Changed your mind?");
+                                    connection.end();
+                                };
                             });
                         };
                     });
-
                 });
-                connection.end();
             });
         });
     });
